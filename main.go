@@ -1,0 +1,160 @@
+package main
+
+import (
+	"context"
+	"flag"
+	"fmt"
+	"io"
+	"log/slog"
+	"net"
+	"net/http"
+	"os"
+	"runtime/debug"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/coder/websocket"
+)
+
+// flags
+var (
+	listenHostAndPort = flag.String("listenHostAndPort", "localhost:8080", "listen host and port")
+	tcpHostAndPort    = flag.String("tcpHostAndPort", "localhost:31415", "tcp host and port")
+	slogLevel         slog.Level
+)
+
+func parseFlags() {
+	flag.TextVar(&slogLevel, "slogLevel", slog.LevelInfo, "slog level")
+
+	flag.Parse()
+}
+
+func setupSlog() {
+	slog.SetDefault(
+		slog.New(
+			slog.NewJSONHandler(
+				os.Stdout,
+				&slog.HandlerOptions{
+					Level: slogLevel,
+				},
+			),
+		),
+	)
+
+	slog.Info("setupSlog",
+		"sloglevel", slogLevel,
+	)
+}
+
+func buildInfoMap() map[string]string {
+	buildInfoMap := make(map[string]string)
+
+	if buildInfo, ok := debug.ReadBuildInfo(); ok {
+		buildInfoMap["GoVersion"] = buildInfo.GoVersion
+		for _, setting := range buildInfo.Settings {
+			if strings.HasPrefix(setting.Key, "GO") ||
+				strings.HasPrefix(setting.Key, "vcs") {
+				buildInfoMap[setting.Key] = setting.Value
+			}
+		}
+	}
+
+	return buildInfoMap
+}
+
+func websocketServerHandlerFunc() http.HandlerFunc {
+	return http.HandlerFunc(func(
+		w http.ResponseWriter,
+		r *http.Request) {
+
+		slog.Info("begin websocket handler",
+			"method", r.Method,
+			"url", r.URL,
+		)
+
+		websocketConn, err := websocket.Accept(w, r, nil)
+		if err != nil {
+			slog.Warn("websocket.Accept error",
+				"error", err,
+			)
+			return
+		}
+
+		defer websocketConn.CloseNow()
+
+		wsNetConn := websocket.NetConn(context.Background(), websocketConn, websocket.MessageBinary)
+
+		tcpConn, err := net.DialTimeout("tcp", *tcpHostAndPort, 2*time.Second)
+		if err != nil {
+			slog.Warn("net.DialTimeout error",
+				"error", err,
+			)
+			return
+		}
+
+		defer tcpConn.Close()
+
+		var wsReadWriteWaitGroup sync.WaitGroup
+
+		wsReadWriteWaitGroup.Go(func() {
+			defer wsNetConn.Close()
+			defer tcpConn.Close()
+
+			written, err := io.Copy(wsNetConn, tcpConn)
+
+			slog.Info("after io.Copy(wsNetConn, tcpConn)",
+				"written", written,
+				"error", err,
+			)
+		})
+
+		wsReadWriteWaitGroup.Go(func() {
+			defer wsNetConn.Close()
+			defer tcpConn.Close()
+
+			written, err := io.Copy(tcpConn, wsNetConn)
+
+			slog.Info("after io.Copy(tcpConn, wsNetConn)",
+				"written", written,
+				"error", err,
+			)
+		})
+
+		wsReadWriteWaitGroup.Wait()
+	})
+}
+
+func main() {
+	defer func() {
+		if err := recover(); err != nil {
+			slog.Error("panic in main",
+				"error", err,
+			)
+			os.Exit(1)
+		}
+	}()
+
+	parseFlags()
+
+	setupSlog()
+
+	slog.Info("begin main",
+		"buildInfoMap", buildInfoMap(),
+		"listenHostAndPort", *listenHostAndPort,
+		"tcpHostAndPort", *tcpHostAndPort,
+	)
+
+	httpServer := &http.Server{
+		Addr:         *listenHostAndPort,
+		Handler:      websocketServerHandlerFunc(),
+		IdleTimeout:  5 * time.Minute,
+		ReadTimeout:  1 * time.Minute,
+		WriteTimeout: 1 * time.Minute,
+	}
+
+	slog.Info("starting http server")
+
+	err := httpServer.ListenAndServe()
+	panic(fmt.Errorf("httpServer.ListenAndServe error: %w", err))
+}
