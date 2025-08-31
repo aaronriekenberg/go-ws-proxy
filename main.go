@@ -70,7 +70,8 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 
 		slog.Info("begin websocket handler",
 			"method", r.Method,
-			"url", r.URL,
+			"headers", r.Header,
+			"url", r.URL.String(),
 		)
 
 		websocketConn, err := websocket.Accept(w, r, nil)
