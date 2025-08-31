@@ -90,8 +90,6 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 
 		defer websocketConn.CloseNow()
 
-		wsNetConn := websocket.NetConn(context.Background(), websocketConn, websocket.MessageBinary)
-
 		tcpConn, err := net.DialTimeout("tcp", *tcpHostAndPort, 2*time.Second)
 		if err != nil {
 			slog.Warn("net.DialTimeout error",
@@ -103,9 +101,11 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 
 		defer tcpConn.Close()
 
-		var wsReadWriteWaitGroup sync.WaitGroup
+		wsNetConn := websocket.NetConn(context.Background(), websocketConn, websocket.MessageBinary)
 
-		wsReadWriteWaitGroup.Go(func() {
+		var proxyWaitGroup sync.WaitGroup
+
+		proxyWaitGroup.Go(func() {
 			defer wsNetConn.Close()
 			defer tcpConn.Close()
 
@@ -118,7 +118,7 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 			)
 		})
 
-		wsReadWriteWaitGroup.Go(func() {
+		proxyWaitGroup.Go(func() {
 			defer wsNetConn.Close()
 			defer tcpConn.Close()
 
@@ -131,7 +131,7 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 			)
 		})
 
-		wsReadWriteWaitGroup.Wait()
+		proxyWaitGroup.Wait()
 
 		slog.Info("end websocket handler",
 			"txID", txID,
