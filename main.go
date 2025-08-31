@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
+	"github.com/google/uuid"
 )
 
 // flags
@@ -66,18 +67,23 @@ func buildInfoMap() map[string]string {
 func websocketServerHandlerFunc() http.HandlerFunc {
 	return http.HandlerFunc(func(
 		w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
+
+		txID := uuid.New().String()
 
 		slog.Info("begin websocket handler",
 			"method", r.Method,
 			"headers", r.Header,
 			"url", r.URL.String(),
+			"txID", txID,
 		)
 
 		websocketConn, err := websocket.Accept(w, r, nil)
 		if err != nil {
 			slog.Warn("websocket.Accept error",
 				"error", err,
+				"txID", txID,
 			)
 			return
 		}
@@ -90,6 +96,7 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 		if err != nil {
 			slog.Warn("net.DialTimeout error",
 				"error", err,
+				"txID", txID,
 			)
 			return
 		}
@@ -107,6 +114,7 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 			slog.Info("after io.Copy(wsNetConn, tcpConn)",
 				"written", written,
 				"error", err,
+				"txID", txID,
 			)
 		})
 
@@ -119,10 +127,16 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 			slog.Info("after io.Copy(tcpConn, wsNetConn)",
 				"written", written,
 				"error", err,
+				"txID", txID,
 			)
 		})
 
 		wsReadWriteWaitGroup.Wait()
+
+		slog.Info("end websocket handler",
+			"txID", txID,
+		)
+
 	})
 }
 
