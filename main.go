@@ -72,18 +72,20 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 
 		txID := uuid.New().String()
 
-		slog.Info("begin websocket handler",
+		txLogger := slog.Default().With(
+			"txID", txID,
+		)
+
+		txLogger.Info("begin websocket handler",
 			"method", r.Method,
 			"headers", r.Header,
 			"url", r.URL.String(),
-			"txID", txID,
 		)
 
 		websocketConn, err := websocket.Accept(w, r, nil)
 		if err != nil {
-			slog.Warn("websocket.Accept error",
+			txLogger.Warn("websocket.Accept error",
 				"error", err,
-				"txID", txID,
 			)
 			return
 		}
@@ -92,9 +94,8 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 
 		tcpConn, err := net.DialTimeout("tcp", *tcpHostAndPort, 2*time.Second)
 		if err != nil {
-			slog.Warn("net.DialTimeout error",
+			txLogger.Warn("net.DialTimeout error",
 				"error", err,
-				"txID", txID,
 			)
 			return
 		}
@@ -111,10 +112,9 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 
 			written, err := io.Copy(wsNetConn, tcpConn)
 
-			slog.Info("after io.Copy(wsNetConn, tcpConn)",
+			txLogger.Info("after io.Copy(wsNetConn, tcpConn)",
 				"written", written,
 				"error", err,
-				"txID", txID,
 			)
 		})
 
@@ -124,18 +124,15 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 
 			written, err := io.Copy(tcpConn, wsNetConn)
 
-			slog.Info("after io.Copy(tcpConn, wsNetConn)",
+			txLogger.Info("after io.Copy(tcpConn, wsNetConn)",
 				"written", written,
 				"error", err,
-				"txID", txID,
 			)
 		})
 
 		proxyWaitGroup.Wait()
 
-		slog.Info("end websocket handler",
-			"txID", txID,
-		)
+		txLogger.Info("end websocket handler")
 
 	})
 }
