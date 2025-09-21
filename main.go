@@ -79,6 +79,7 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 		txLogger.Info("begin websocket handler",
 			"method", r.Method,
 			"headers", r.Header,
+			"protocol", r.Proto,
 			"url", r.URL.String(),
 		)
 
