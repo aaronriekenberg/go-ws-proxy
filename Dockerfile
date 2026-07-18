@@ -1,13 +1,12 @@
 # Build stage
 FROM golang:1.26.5 as build
 
+# Copy source code
 WORKDIR /go/src/app
+COPY . .
 
 # Download dependencies
 RUN go mod download
-
-# Copy source code
-COPY . .
 
 # Run vet and tests
 RUN go vet -v
