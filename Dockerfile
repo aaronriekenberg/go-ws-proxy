@@ -19,8 +19,8 @@ RUN go test -v
 # Build the application
 RUN CGO_ENABLED=0 go build -o /go/bin/go-ws-proxy .
 
-# Final stage based on https://github.com/GoogleContainerTools/distroless/blob/main/examples/go/Dockerfile
-FROM gcr.io/distroless/static-debian12
+# Final stage from https://github.com/GoogleContainerTools/distroless
+FROM gcr.io/distroless/static-debian13
 
 # Copy binary from builder
 COPY --from=build /go/bin/go-ws-proxy /go-ws-proxy
