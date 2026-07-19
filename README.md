@@ -37,7 +37,6 @@ docker run -d \
   -p 9090:9090 \
   --name ws-proxy \
   aaronriekenberg/go-ws-proxy:latest \
-  -listenHostAndPort 0.0.0.0:9090 \
   -tcpHostAndPort remote-server.example.com:5000
 ```
 
@@ -60,31 +59,10 @@ services:
     image: aaronriekenberg/go-ws-proxy:latest
     container_name: ws-proxy
     ports:
-      - "8080:8080"
+      - "80:80"
     command:
-      - -listenHostAndPort
-      - "0.0.0.0:8080"
       - -tcpHostAndPort
       - "localhost:31415"
-    restart: unless-stopped
-```
-
-Override environment variables in your compose file:
-
-```yaml
-version: '3.8'
-
-services:
-  ws-proxy:
-    image: aaronriekenberg/go-ws-proxy:latest
-    container_name: ws-proxy
-    ports:
-      - "9090:9090"
-    command:
-      - -listenHostAndPort
-      - "0.0.0.0:9090"
-      - -tcpHostAndPort
-      - "remote-server.example.com:5000"
     restart: unless-stopped
 ```
 
@@ -98,10 +76,8 @@ services:
     image: aaronriekenberg/go-ws-proxy:latest
     container_name: ws-proxy
     ports:
-      - "8080:8080"
+      - "80:80"
     command:
-      - -listenHostAndPort
-      - "0.0.0.0:8080"
       - -tcpHostAndPort
       - "backend-service:5000"
     depends_on:
