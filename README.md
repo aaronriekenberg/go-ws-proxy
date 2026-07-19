@@ -22,7 +22,7 @@ Run a container:
 
 ```bash
 docker run -d \
-  -p 8080:8080 \
+  -p 80:80 \
   --name ws-proxy \
   aaronriekenberg/go-ws-proxy:latest \
   -tcpHostAndPort your-target-host:31415
@@ -34,7 +34,7 @@ You can override the listening address and TCP target by passing command-line ar
 
 ```bash
 docker run -d \
-  -p 9090:9090 \
+  -p 9090:80 \
   --name ws-proxy \
   aaronriekenberg/go-ws-proxy:latest \
   -tcpHostAndPort remote-server.example.com:5000
