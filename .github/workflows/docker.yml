@@ -28,29 +28,29 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-       - name: Extract metadata
-         id: meta
-         uses: docker/metadata-action@v6
-         with:
-           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-           tags: |
-             type=ref,event=tag
-             type=semver,pattern={{version}}
-             type=semver,pattern={{major}}.{{minor}}
-             type=sha
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
 
-       - name: Extract release tag
-         id: release_tag
-         run: |
-           RELEASE_TAG=${{ github.ref }}
-           RELEASE_TAG=${RELEASE_TAG#refs/tags/}
-           echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+      - name: Extract release tag
+        id: release_tag
+        run: |
+          RELEASE_TAG=${{ github.ref }}
+          RELEASE_TAG=${RELEASE_TAG#refs/tags/}
+          echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
 
-       - name: Build and push Docker image
-         uses: docker/build-push-action@v7
-         with:
-           context: .
-           push: true
-           tags: ${{ steps.meta.outputs.tags }}
-           labels: ${{ steps.meta.outputs.labels }}
-           build-args: RELEASE_TAG=${{ steps.release_tag.outputs.tag }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: RELEASE_TAG=${{ steps.release_tag.outputs.tag }}
