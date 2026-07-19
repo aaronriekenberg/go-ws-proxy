@@ -25,6 +25,9 @@ var (
 	slogLevel         slog.Level
 )
 
+// Release tag - embedded during build with ldflags
+var releaseTag = "dev"
+
 func parseFlags() {
 	flag.TextVar(&slogLevel, "slogLevel", slog.LevelInfo, "slog level")
 
@@ -154,6 +157,7 @@ func main() {
 	setupSlog()
 
 	slog.Info("begin main",
+		"releaseTag", releaseTag,
 		"buildInfoMap", buildInfoMap(),
 		"listenHostAndPort", *listenHostAndPort,
 		"tcpHostAndPort", *tcpHostAndPort,

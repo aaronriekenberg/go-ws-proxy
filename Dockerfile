@@ -12,8 +12,9 @@ RUN go mod download
 RUN go vet -v
 RUN go test -v
 
-# Build the application
-RUN CGO_ENABLED=0 go build -o /go/bin/go-ws-proxy
+# Build the application with release tag embedded via ldflags
+ARG RELEASE_TAG=dev
+RUN CGO_ENABLED=0 go build -ldflags="-X main.releaseTag=${RELEASE_TAG}" -o /go/bin/go-ws-proxy
 
 # Final stage from https://github.com/GoogleContainerTools/distroless
 FROM gcr.io/distroless/static-debian13
