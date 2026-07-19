@@ -110,13 +110,13 @@ If you need to connect to a service running on the host machine (not in Docker),
 ```bash
 # Docker Desktop (macOS, Windows)
 docker run -d \
-  -p 8080:8080 \
+  -p 8080:80 \
   aaronriekenberg/go-ws-proxy:latest \
   -tcpHostAndPort host.docker.internal:31415
 
 # Docker on Linux
 docker run -d \
-  -p 8080:8080 \
+  -p 8080:80 \
   --add-host=host-gateway:host-gateway \
   aaronriekenberg/go-ws-proxy:latest \
   -tcpHostAndPort host-gateway:31415
