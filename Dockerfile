@@ -23,8 +23,8 @@ FROM gcr.io/distroless/static-debian13
 COPY --from=build /go/bin/go-ws-proxy /
 
 # Expose default port
-EXPOSE 80
+EXPOSE 8080
 
 # Run the application
-ENTRYPOINT ["/go-ws-proxy", "-listenHostAndPort", ":80"]
+ENTRYPOINT ["/go-ws-proxy", "-listenHostAndPort", ":8080"]
 CMD ["-tcpHostAndPort", "localhost:31415"]

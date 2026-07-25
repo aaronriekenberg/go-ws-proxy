@@ -22,7 +22,7 @@ Run a container:
 
 ```bash
 docker run -d \
-  -p 80:80 \
+  -p 8080:8080 \
   --name ws-proxy \
   aaronriekenberg/go-ws-proxy:latest \
   -tcpHostAndPort your-target-host:31415
@@ -34,7 +34,7 @@ You can override the listening address and TCP target by passing command-line ar
 
 ```bash
 docker run -d \
-  -p 9090:80 \
+  -p 9090:8080 \
   --name ws-proxy \
   aaronriekenberg/go-ws-proxy:latest \
   -tcpHostAndPort remote-server.example.com:5000
@@ -59,7 +59,7 @@ services:
     image: aaronriekenberg/go-ws-proxy:latest
     container_name: ws-proxy
     ports:
-      - "80:80"
+      - "8080:8080"
     command:
       - -tcpHostAndPort
       - "localhost:31415"
@@ -76,7 +76,7 @@ services:
     image: aaronriekenberg/go-ws-proxy:latest
     container_name: ws-proxy
     ports:
-      - "80:80"
+      - "8080:8080"
     command:
       - -tcpHostAndPort
       - "backend-service:5000"
@@ -110,13 +110,13 @@ If you need to connect to a service running on the host machine (not in Docker),
 ```bash
 # Docker Desktop (macOS, Windows)
 docker run -d \
-  -p 8080:80 \
+  -p 8080:8080 \
   aaronriekenberg/go-ws-proxy:latest \
   -tcpHostAndPort host.docker.internal:31415
 
 # Docker on Linux
 docker run -d \
-  -p 8080:80 \
+  -p 8080:8080 \
   --add-host=host-gateway:host-gateway \
   aaronriekenberg/go-ws-proxy:latest \
   -tcpHostAndPort host-gateway:31415

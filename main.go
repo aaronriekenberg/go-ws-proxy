@@ -25,9 +25,6 @@ var (
 	slogLevel         slog.Level
 )
 
-// Release tag - embedded during build with ldflags
-var releaseTag = "dev"
-
 func parseFlags() {
 	flag.TextVar(&slogLevel, "slogLevel", slog.LevelInfo, "slog level")
 
@@ -51,11 +48,15 @@ func setupSlog() {
 	)
 }
 
+// Release tag - embedded during build with ldflags
+var releaseTag = "dev"
+
 func buildInfoMap() map[string]string {
 	buildInfoMap := make(map[string]string)
 
 	if buildInfo, ok := debug.ReadBuildInfo(); ok {
 		buildInfoMap["GoVersion"] = buildInfo.GoVersion
+		buildInfoMap["releaseTag"] = releaseTag
 		for _, setting := range buildInfo.Settings {
 			if strings.HasPrefix(setting.Key, "GO") ||
 				strings.HasPrefix(setting.Key, "vcs") {
@@ -157,7 +158,6 @@ func main() {
 	setupSlog()
 
 	slog.Info("begin main",
-		"releaseTag", releaseTag,
 		"buildInfoMap", buildInfoMap(),
 		"listenHostAndPort", *listenHostAndPort,
 		"tcpHostAndPort", *tcpHostAndPort,
