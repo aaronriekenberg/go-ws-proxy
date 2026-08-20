@@ -13,9 +13,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"uuid"
 
 	"github.com/coder/websocket"
-	"github.com/google/uuid"
 )
 
 // flags
@@ -74,7 +74,7 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 		r *http.Request,
 	) {
 
-		txID := uuid.New().String()
+		txID := uuid.NewV4().String()
 
 		txLogger := slog.Default().With(
 			"txID", txID,
