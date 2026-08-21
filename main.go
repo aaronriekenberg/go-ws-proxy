@@ -54,9 +54,10 @@ var releaseTag = "dev"
 func buildInfoMap() map[string]string {
 	buildInfoMap := make(map[string]string)
 
+	buildInfoMap["releaseTag"] = releaseTag
+
 	if buildInfo, ok := debug.ReadBuildInfo(); ok {
 		buildInfoMap["GoVersion"] = buildInfo.GoVersion
-		buildInfoMap["releaseTag"] = releaseTag
 		for _, setting := range buildInfo.Settings {
 			if strings.HasPrefix(setting.Key, "GO") ||
 				strings.HasPrefix(setting.Key, "vcs") {
@@ -74,10 +75,8 @@ func websocketServerHandlerFunc() http.HandlerFunc {
 		r *http.Request,
 	) {
 
-		txID := uuid.NewV4().String()
-
 		txLogger := slog.Default().With(
-			"txID", txID,
+			"txID", uuid.NewV4().String(),
 		)
 
 		txLogger.Info("begin websocket handler",
