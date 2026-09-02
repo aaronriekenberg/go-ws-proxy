@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.27.0 as build
+FROM golang:1.27.1 as build
 
 # Copy source code
 WORKDIR /go/src/app
